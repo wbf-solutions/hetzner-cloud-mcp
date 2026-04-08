@@ -1,0 +1,14 @@
+/vendor/
+.env
+.env.local
+.env.*.local
+/tmp/
+.vscode/
+.cursor/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.well-known/*.json
+!.well-known/*.example.json

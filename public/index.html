@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hetzner Cloud MCP — Manage Cloud Infrastructure with AI</title>
+<meta name="description" content="Open-source MCP server for managing Hetzner Cloud infrastructure. 60 tools across Cloud API and SSH layers. Works with Claude, Cursor, VS Code, and any MCP client.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 44 44' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2.25' y='2.25' width='39.5' height='39.5' rx='10' fill='none' stroke='%23F97316' stroke-width='4.5'/%3E%3Ccircle cx='22' cy='22' r='4.5' fill='%23F97316'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--wbf-black:#0A0E17;--wbf-dark:#111827;--wbf-slate:#1E293B;--wbf-steel:#334155;--wbf-muted:#64748B;--wbf-light:#94A3B8;--wbf-off-white:#E2E8F0;--wbf-white:#F8FAFC;--wbf-accent:#F97316;--wbf-accent-hover:#FB923C;--wbf-accent-glow:rgba(249,115,22,0.15);--wbf-success:#22C55E;--wbf-info:#3B82F6;--font-display:'Sora',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--wbf-black);color:var(--wbf-off-white)}
+body{font-family:var(--font-body);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--wbf-accent);color:var(--wbf-black)}
+a{color:inherit;text-decoration:none}
+
+.container{max-width:960px;margin:0 auto;padding:0 32px;position:relative;z-index:1}
+
+/* Ambient */
+body::before{content:'';position:fixed;top:-30%;left:-10%;width:50%;height:60%;background:radial-gradient(ellipse,rgba(249,115,22,0.05) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* NAV */
+.nav{padding:20px 0;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-brand:hover{opacity:0.85}
+.nav-brand svg{width:28px;height:28px}
+.nav-title{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--wbf-white);letter-spacing:-0.03em}
+.nav-title .accent{color:var(--wbf-accent)}
+.nav-sub{font-weight:500;font-size:13px;opacity:0.5;margin-left:2px}
+.nav-links{display:flex;gap:8px;align-items:center}
+.nav-links a{font-family:var(--font-mono);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:var(--wbf-muted);padding:7px 14px;border-radius:6px;transition:all .2s}
+.nav-links a:hover{color:var(--wbf-white);background:rgba(255,255,255,0.05)}
+.nav-links .cta{color:var(--wbf-black);background:var(--wbf-accent);font-weight:600}
+.nav-links .cta:hover{background:var(--wbf-accent-hover)}
+
+/* HERO */
+.hero{padding:80px 0 60px;text-align:center}
+.hero-icon{width:80px;height:80px;margin:0 auto 28px;border-radius:20px;overflow:hidden}
+.hero-icon img{width:100%;height:100%;object-fit:cover}
+.hero-label{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--wbf-accent);margin-bottom:20px;display:inline-flex;align-items:center;gap:8px}
+.hero-label::before,.hero-label::after{content:'';width:20px;height:1px;background:var(--wbf-accent);opacity:0.4}
+.hero h1{font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:800;line-height:1.1;letter-spacing:-0.035em;color:var(--wbf-white);margin-bottom:20px}
+.hero h1 em{font-style:normal;color:var(--wbf-accent)}
+.hero-desc{font-size:17px;color:var(--wbf-light);max-width:inherit;margin:0 auto 36px;line-height:1.75}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;background:var(--wbf-accent);color:var(--wbf-black);font-family:var(--font-body);font-size:14px;font-weight:600;border-radius:8px;transition:all .25s}
+.btn-primary:hover{background:var(--wbf-accent-hover);transform:translateY(-1px);box-shadow:0 8px 28px rgba(249,115,22,0.3)}
+.btn-secondary{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;color:var(--wbf-off-white);font-family:var(--font-body);font-size:14px;font-weight:500;border-radius:8px;border:1px solid var(--wbf-steel);transition:all .25s}
+.btn-secondary:hover{border-color:var(--wbf-light);background:rgba(255,255,255,0.03);transform:translateY(-1px)}
+
+/* BADGES */
+.badges{display:flex;gap:12px;justify-content:center;margin-top:32px;flex-wrap:wrap}
+.badge{font-family:var(--font-mono);font-size:11px;padding:5px 12px;border-radius:20px;display:inline-flex;align-items:center;gap:6px;letter-spacing:0.02em}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%}
+.badge-orange{background:rgba(249,115,22,0.08);color:var(--wbf-accent);border:1px solid rgba(249,115,22,0.15)}
+.badge-orange::before{background:var(--wbf-accent)}
+.badge-green{background:rgba(34,197,94,0.08);color:var(--wbf-success);border:1px solid rgba(34,197,94,0.15)}
+.badge-green::before{background:var(--wbf-success)}
+.badge-blue{background:rgba(59,130,246,0.08);color:var(--wbf-info);border:1px solid rgba(59,130,246,0.15)}
+.badge-blue::before{background:var(--wbf-info)}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06) 20%,rgba(255,255,255,0.06) 80%,transparent);margin:0}
+
+/* FEATURES */
+.features{padding:80px 0}
+.features-label{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--wbf-accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.features-label::before{content:'';width:24px;height:1px;background:var(--wbf-accent)}
+.features-title{font-family:var(--font-display);font-size:clamp(24px,3vw,36px);font-weight:700;letter-spacing:-0.025em;color:var(--wbf-white);margin-bottom:48px}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feature-card{background:linear-gradient(145deg,rgba(30,41,59,0.45),rgba(17,24,39,0.35));border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:28px 24px;transition:all .3s}
+.feature-card:hover{border-color:rgba(255,255,255,0.1);transform:translateY(-2px)}
+.feature-card h3{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--wbf-white);margin-bottom:8px}
+.feature-card p{font-size:13px;color:var(--wbf-light);line-height:1.65}
+.feature-count{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--wbf-accent);margin-bottom:12px;line-height:1}
+
+/* LAYER DETAIL */
+.layers{padding:0 0 80px}
+.layer-section{margin-bottom:40px}
+.layer-section:last-child{margin-bottom:0}
+.layer-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.layer-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.layer-dot-api{background:var(--wbf-accent)}
+.layer-dot-ssh{background:var(--wbf-success)}
+.layer-header h3{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--wbf-white);letter-spacing:-0.02em}
+.layer-header span{font-family:var(--font-mono);font-size:11px;color:var(--wbf-muted);letter-spacing:0.04em}
+.layer-desc{font-size:14px;color:var(--wbf-light);line-height:1.7;margin-bottom:25px;max-width:inherit}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.tool-tag{font-family:var(--font-mono);font-size:11px;color:var(--wbf-muted);padding:6px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:6px;transition:all .2s}
+.tool-tag:hover{color:var(--wbf-light);border-color:rgba(255,255,255,0.08);background:rgba(255,255,255,0.04)}
+.layer-note{font-family:var(--font-mono);font-size:11px;color:var(--wbf-steel);margin-top:12px;display:flex;align-items:center;gap:6px}
+.layer-note::before{content:'*';color:var(--wbf-accent)}
+
+/* USAGE EXAMPLES */
+.usage{padding:80px 0}
+.usage-intro{font-size:15px;color:var(--wbf-light);line-height:1.75;margin-bottom:48px;max-width:inherit}
+.example-grid{display:flex;flex-direction:column;gap:24px}
+.example-card{background:linear-gradient(145deg,rgba(30,41,59,0.4),rgba(17,24,39,0.3));border:1px solid rgba(255,255,255,0.05);border-radius:14px;overflow:hidden;transition:all .3s}
+.example-card:hover{border-color:rgba(255,255,255,0.1)}
+.example-top{padding:24px 28px 20px;display:flex;align-items:flex-start;gap:16px}
+.example-you{flex:1}
+.example-speaker{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.speaker-you{color:var(--wbf-info)}
+.speaker-ai{color:var(--wbf-accent)}
+.speaker-dot{width:5px;height:5px;border-radius:50%}
+.speaker-dot-you{background:var(--wbf-info)}
+.speaker-dot-ai{background:var(--wbf-accent)}
+.example-prompt{font-size:16px;color:var(--wbf-white);font-weight:500;line-height:1.5}
+.example-bottom{padding:0 28px 24px}
+.example-response{background:var(--wbf-black);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:20px 22px}
+.example-response .example-speaker{margin-bottom:10px}
+.response-text{font-size:13px;color:var(--wbf-light);line-height:1.7}
+.response-text code{font-family:var(--font-mono);font-size:11px;background:rgba(249,115,22,0.08);color:var(--wbf-accent);padding:2px 6px;border-radius:4px}
+.response-text .response-line{margin-bottom:6px}
+.response-text .response-line:last-child{margin-bottom:0}
+.response-tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.response-tool{font-family:var(--font-mono);font-size:10px;color:var(--wbf-muted);padding:3px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:4px}
+.example-category{font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--wbf-steel);padding:4px 10px;border:1px solid rgba(255,255,255,0.06);border-radius:20px;white-space:nowrap;align-self:flex-start;margin-top:4px}
+
+/* EXTENSIONS */
+.extensions{padding:80px 0}
+.ext-panel{background:linear-gradient(145deg,rgba(30,41,59,0.5),rgba(17,24,39,0.35));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:44px 40px;margin-top:48px;position:relative;overflow:hidden}
+.ext-coming{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--wbf-accent);padding:8px 16px;border:1px solid rgba(249,115,22,0.2);border-radius:8px;background:rgba(249,115,22,0.06)}
+.ext-coming::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--wbf-accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.ext-panel-header{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.ext-panel-icon{width:52px;height:52px;border-radius:14px;overflow:hidden;flex-shrink:0}
+.ext-panel-icon img{width:100%;height:100%;object-fit:cover}
+.ext-panel-header h3{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--wbf-white);letter-spacing:-0.02em}
+.ext-panel-header .ext-version{font-family:var(--font-mono);font-size:11px;color:var(--wbf-muted);margin-top:2px}
+.ext-panel-desc{font-size:15px;color:var(--wbf-light);line-height:1.75;margin-bottom:32px;max-width:680px}
+.ext-cols{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-bottom:32px}
+.ext-col-label{font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--wbf-muted);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.ext-col-label .ext-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ext-col-label .dot-orange{background:var(--wbf-accent)}
+.ext-col-label .dot-blue{background:var(--wbf-info)}
+.ext-features{list-style:none;display:flex;flex-direction:column;gap:8px}
+.ext-features li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--wbf-light);line-height:1.5}
+.ext-features li::before{content:'→';color:var(--wbf-accent);flex-shrink:0;font-family:var(--font-mono);font-size:12px;margin-top:1px}
+.ext-panel-actions{display:flex;gap:12px;flex-wrap:wrap}
+.ext-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:8px;font-family:var(--font-body);font-size:14px;font-weight:600;transition:all .25s}
+.ext-btn-primary{background:var(--wbf-accent);color:var(--wbf-black)}
+.ext-btn-primary:hover{background:var(--wbf-accent-hover);transform:translateY(-1px);box-shadow:0 6px 20px rgba(249,115,22,0.25)}
+
+@media(max-width:768px){.ext-cols{grid-template-columns:1fr}.ext-panel{padding:28px 24px}}
+
+/* TERMINAL */
+.quickstart{padding:80px 0}
+.qs-block{background:linear-gradient(145deg,rgba(30,41,59,0.4),rgba(17,24,39,0.3));border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:48px;display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:center}
+.qs-text h2{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--wbf-white);margin-bottom:16px;letter-spacing:-0.02em}
+.qs-text p{font-size:15px;color:var(--wbf-light);line-height:1.7;margin-bottom:16px}
+.qs-steps{list-style:none;display:flex;flex-direction:column;gap:10px}
+.qs-steps li{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--wbf-light)}
+.qs-steps li .num{width:24px;height:24px;border-radius:6px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.15);font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--wbf-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.terminal{background:var(--wbf-black);border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden}
+.terminal-bar{display:flex;align-items:center;gap:6px;padding:12px 16px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.05)}
+.terminal-dot{width:10px;height:10px;border-radius:50%;background:var(--wbf-steel)}
+.terminal-body{padding:20px 22px;font-family:var(--font-mono);font-size:12px;line-height:2.2;color:var(--wbf-muted)}
+.terminal-body .pr{color:var(--wbf-accent)}.terminal-body .cm{color:var(--wbf-off-white)}.terminal-body .ur{color:var(--wbf-light)}.terminal-body .co{color:var(--wbf-steel)}
+
+/* CLIENTS SECTION */
+.clients{padding:60px 0;text-align:center}
+.clients-title{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--wbf-muted);margin-bottom:28px}
+.clients-logos{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
+.client-item{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:13px;color:var(--wbf-steel);transition:color .2s,opacity .2s}
+.client-item:hover{color:var(--wbf-light)}
+.client-item::before{content:'·';color:var(--wbf-steel);margin-right:2px}
+.client-item:first-child::before{display:none}
+
+/* BUILT BY SECTION */
+.built-by-wrap{border-top:1px solid rgba(255,255,255,0.04);background:linear-gradient(180deg,transparent,rgba(17,24,39,0.3))}
+.built-by{padding:80px 32px 60px;max-width:960px;margin:0 auto}
+.built-by-label{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--wbf-accent);margin-bottom:16px}
+.built-by h2{font-size:28px;font-weight:600;margin-bottom:24px;color:var(--wbf-light)}
+.built-by-body{color:var(--wbf-muted);line-height:1.8;font-size:15px}
+.built-by-body p{margin-bottom:16px}
+.built-by-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.built-by-logo svg{width:36px;height:36px}
+.built-by-logo span{font-size:20px;font-weight:600;color:var(--wbf-light)}
+.built-by-logo span em{color:var(--wbf-accent);font-style:normal}
+
+/* FOOTER */
+footer{padding:40px 0;border-top:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between}
+.footer-brand{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--wbf-muted)}
+.footer-brand span{color:var(--wbf-accent)}
+.footer-copy{font-size:11px;color:#ddd}
+.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.footer-logo svg{width:22px;height:22px}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-family:var(--font-mono);font-size:11px;color:var(--wbf-muted);text-transform:uppercase;letter-spacing:0.04em;transition:color .2s}
+.footer-links a:hover{color:var(--wbf-off-white)}
+
+@media(max-width:768px){
+  .features-grid{grid-template-columns:1fr}
+  .qs-block{grid-template-columns:1fr;padding:28px}
+  .hero-actions{flex-direction:column;align-items:center}
+  .btn-primary,.btn-secondary{width:100%;justify-content:center;max-width:300px}
+  footer{flex-direction:column;gap:16px;text-align:center}
+  .clients-logos{gap:24px}
+  .tool-grid{grid-template-columns:1fr 1fr}
+  .example-top{flex-direction:column;gap:10px}
+  .example-category{align-self:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="nav">
+    <a href="https://wbf.solutions" target="_blank" rel="noopener" class="nav-brand">
+      <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1.5" y="1.5" width="41" height="41" rx="10" ry="10" fill="none" stroke="#F97316" stroke-width="3"/>
+        <rect x="8" y="8" width="28" height="28" rx="6" ry="6" fill="none" stroke="rgba(255,255,255,0.80)" stroke-width="2.5"/>
+        <circle cx="22" cy="22" r="3.5" fill="#F97316"/>
+      </svg>
+      <div class="nav-title">WBF<span class="accent">.</span><span class="nav-sub">Solutions</span></div>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#tools">Tools</a>
+      <a href="#usage">Usage</a>
+      <a href="#quickstart">Setup</a>
+      <a href="https://github.com/wbf-solutions/hetzner-cloud-mcp" target="_blank" rel="noopener" class="cta">GitHub →</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <section class="hero">
+    <div class="hero-icon">
+      <img src="/icons/hetzner-cloud-mcp-256.png" alt="Hetzner Cloud MCP" width="80" height="80">
+    </div>
+    <div class="hero-label">Open Source · MIT License</div>
+    <h1>Manage Hetzner Cloud with <em>AI.</em></h1>
+    <p class="hero-desc">Two management layers in one MCP server. The Hetzner Cloud API controls your infrastructure. SSH connects to what&rsquo;s running inside &mdash; services, logs, Nginx, MySQL, and system health. 60 tools total.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/wbf-solutions/hetzner-cloud-mcp" target="_blank" rel="noopener" class="btn-primary">View on GitHub →</a>
+      <a href="#quickstart" class="btn-secondary">Quick Start</a>
+    </div>
+    <div class="badges">
+      <span class="badge badge-orange">PHP 8.1+</span>
+      <span class="badge badge-green">MIT License</span>
+      <span class="badge badge-blue">Streamable HTTP</span>
+    </div>
+  </section>
+</div>
+
+<div class="divider"></div>
+
+<div class="container">
+  <section class="features" id="features">
+    <div class="features-label">Two management layers</div>
+    <h2 class="features-title">Cloud API + SSH in one MCP server.</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-count">35</div>
+        <h3>Cloud API Tools</h3>
+        <p>Server power, metrics, snapshots, backups, firewalls, DNS zones and records, rescue mode, server rebuild and rescale &mdash; all through the Hetzner Cloud API. Works even when the server OS is unresponsive.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-count">25</div>
+        <h3>SSH Tools</h3>
+        <p>Restart services, read logs, check disk and memory, manage Nginx configs, run read-only MySQL queries, inspect cron jobs, control supervisor processes, check UFW status &mdash; via direct SSH.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-count">&infin;</div>
+        <h3>Multi-Server</h3>
+        <p>Configure 1 to N servers from a single MCP instance. Define names, aliases, and per-server SSH settings via environment variables. No code changes required.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Safety First</h3>
+        <p>Confirm guards on all destructive operations. 29 blocked dangerous SSH command patterns. Read-only SQL enforcement. Tool annotations with readOnlyHint and destructiveHint on every tool.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Flexible Auth</h3>
+        <p>Three modes: no auth (firewall-secured), API key, or API key + OAuth 2.1 with PKCE. Self-hosted, no mandatory accounts, no vendor lock-in.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Optional Layers</h3>
+        <p>SSH tools and DNS tools register only when configured. Run API-only if you don&rsquo;t need SSH. Add DNS management with a separate Hetzner DNS token. Graceful degradation by design.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="container">
+  <section class="layers" id="tools">
+    <div class="features-label">All 60 tools</div>
+    <h2 class="features-title">What you can do.</h2>
+
+    <div class="layer-section">
+      <div class="layer-header">
+        <div class="layer-dot layer-dot-api"></div>
+        <h3>Layer 1 &mdash; Hetzner Cloud API</h3>
+        <span>&middot; works even when the OS is down</span>
+      </div>
+      <p class="layer-desc">Infrastructure-level control through the Hetzner Cloud API. Power management, snapshots, firewalls, DNS, server metrics, rescue mode, and more.</p>
+      <div class="tool-grid">
+        <div class="tool-tag">server_info</div>
+        <div class="tool-tag">server_metrics</div>
+        <div class="tool-tag">server_power_on</div>
+        <div class="tool-tag">server_power_off</div>
+        <div class="tool-tag">server_shutdown</div>
+        <div class="tool-tag">server_reboot</div>
+        <div class="tool-tag">server_reset</div>
+        <div class="tool-tag">server_reset_password</div>
+        <div class="tool-tag">server_rescue_enable</div>
+        <div class="tool-tag">server_rescue_disable</div>
+        <div class="tool-tag">server_rebuild</div>
+        <div class="tool-tag">server_change_type</div>
+        <div class="tool-tag">snapshot_create</div>
+        <div class="tool-tag">snapshot_list</div>
+        <div class="tool-tag">snapshot_delete</div>
+        <div class="tool-tag">backup_enable</div>
+        <div class="tool-tag">backup_disable</div>
+        <div class="tool-tag">firewall_list</div>
+        <div class="tool-tag">firewall_get</div>
+        <div class="tool-tag">firewall_set_rules</div>
+        <div class="tool-tag">firewall_apply_to_server</div>
+        <div class="tool-tag">firewall_remove_from_server</div>
+        <div class="tool-tag">project_servers_list</div>
+        <div class="tool-tag">ssh_keys_list</div>
+        <div class="tool-tag">action_status</div>
+        <div class="tool-tag">dns_zones_list</div>
+        <div class="tool-tag">dns_zone_get</div>
+        <div class="tool-tag">dns_zone_create</div>
+        <div class="tool-tag">dns_zone_delete</div>
+        <div class="tool-tag">dns_records_list</div>
+        <div class="tool-tag">dns_record_add</div>
+        <div class="tool-tag">dns_record_update</div>
+        <div class="tool-tag">dns_record_delete</div>
+      </div>
+      <div class="layer-note">DNS tools require a separate HETZNER_DNS_TOKEN</div>
+    </div>
+
+    <div class="layer-section">
+      <div class="layer-header">
+        <div class="layer-dot layer-dot-ssh"></div>
+        <h3>Layer 2 &mdash; SSH</h3>
+        <span>&middot; connects to what&rsquo;s running inside your servers</span>
+      </div>
+      <p class="layer-desc">OS-level management via direct SSH. Diagnose issues, restart services, read logs, check system health, manage Nginx and MySQL &mdash; without opening a terminal.</p>
+      <div class="tool-grid">
+        <div class="tool-tag">ssh_service_status</div>
+        <div class="tool-tag">ssh_service_start</div>
+        <div class="tool-tag">ssh_service_stop</div>
+        <div class="tool-tag">ssh_service_restart</div>
+        <div class="tool-tag">ssh_services_list</div>
+        <div class="tool-tag">ssh_disk_usage</div>
+        <div class="tool-tag">ssh_memory_usage</div>
+        <div class="tool-tag">ssh_cpu_load</div>
+        <div class="tool-tag">ssh_process_list</div>
+        <div class="tool-tag">ssh_uptime</div>
+        <div class="tool-tag">ssh_nginx_test</div>
+        <div class="tool-tag">ssh_nginx_reload</div>
+        <div class="tool-tag">ssh_nginx_sites_list</div>
+        <div class="tool-tag">ssh_nginx_site_config</div>
+        <div class="tool-tag">ssh_logs_nginx_error</div>
+        <div class="tool-tag">ssh_logs_nginx_access</div>
+        <div class="tool-tag">ssh_logs_syslog</div>
+        <div class="tool-tag">ssh_logs_journal</div>
+        <div class="tool-tag">ssh_logs_supervisor</div>
+        <div class="tool-tag">ssh_mysql_databases</div>
+        <div class="tool-tag">ssh_mysql_processlist</div>
+        <div class="tool-tag">ssh_mysql_query</div>
+        <div class="tool-tag">ssh_cron_list</div>
+        <div class="tool-tag">ssh_supervisor_status</div>
+        <div class="tool-tag">ssh_supervisor_restart</div>
+        <div class="tool-tag">ssh_ufw_status</div>
+        <div class="tool-tag">ssh_exec</div>
+      </div>
+      <div class="layer-note">SSH tools register only when SSH_KEY_PATH is configured</div>
+    </div>
+  </section>
+</div>
+
+<div class="divider"></div>
+
+<div class="container">
+  <section class="usage" id="usage">
+    <div class="features-label">Just ask</div>
+    <h2 class="features-title">How it works in practice.</h2>
+    <p class="usage-intro">Connect the MCP to Claude.ai, Claude Desktop, or the Claude mobile app. Then ask questions in plain language. Claude uses the right tools automatically.</p>
+
+    <div class="example-grid">
+
+      <div class="example-card">
+        <div class="example-top">
+          <div class="example-you">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-you"></span><span class="speaker-you">You</span></div>
+            <div class="example-prompt">My website is returning 502 errors. Can you check what&rsquo;s going on?</div>
+          </div>
+          <div class="example-category">Diagnostics</div>
+        </div>
+        <div class="example-bottom">
+          <div class="example-response">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-ai"></span><span class="speaker-ai">Claude</span></div>
+            <div class="response-text">
+              <div class="response-line">I checked your production server. Nginx is running fine, but your app service <code>myapp.service</code> has crashed &mdash; it exited 4 minutes ago with an out-of-memory error.</div>
+              <div class="response-line">The last 20 lines of the nginx error log confirm upstream connection failures. Your server is at 94% memory usage with only 180MB free.</div>
+              <div class="response-line">Want me to restart the service and check if it recovers?</div>
+            </div>
+            <div class="response-tools">
+              <span class="response-tool">ssh_service_status</span>
+              <span class="response-tool">ssh_logs_nginx_error</span>
+              <span class="response-tool">ssh_memory_usage</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example-card">
+        <div class="example-top">
+          <div class="example-you">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-you"></span><span class="speaker-you">You</span></div>
+            <div class="example-prompt">Give me a quick health check across all my servers.</div>
+          </div>
+          <div class="example-category">Monitoring</div>
+        </div>
+        <div class="example-bottom">
+          <div class="example-response">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-ai"></span><span class="speaker-ai">Claude</span></div>
+            <div class="response-text">
+              <div class="response-line">All 3 servers are running. Here&rsquo;s the summary:</div>
+              <div class="response-line"><code>web</code> &mdash; CPU 12%, RAM 2.1/4GB, disk 58% used, uptime 43 days</div>
+              <div class="response-line"><code>api</code> &mdash; CPU 3%, RAM 1.4/4GB, disk 31% used, uptime 43 days</div>
+              <div class="response-line"><code>db</code> &mdash; CPU 8%, RAM 5.2/8GB, disk 45% used, uptime 67 days</div>
+              <div class="response-line">No immediate concerns. The <code>db</code> server has 12 pending security updates &mdash; want me to list them?</div>
+            </div>
+            <div class="response-tools">
+              <span class="response-tool">project_servers_list</span>
+              <span class="response-tool">ssh_cpu_load</span>
+              <span class="response-tool">ssh_memory_usage</span>
+              <span class="response-tool">ssh_disk_usage</span>
+              <span class="response-tool">ssh_uptime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example-card">
+        <div class="example-top">
+          <div class="example-you">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-you"></span><span class="speaker-you">You</span></div>
+            <div class="example-prompt">I just deployed a new version. Restart nginx and check if the site loads.</div>
+          </div>
+          <div class="example-category">Operations</div>
+        </div>
+        <div class="example-bottom">
+          <div class="example-response">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-ai"></span><span class="speaker-ai">Claude</span></div>
+            <div class="response-text">
+              <div class="response-line">Nginx config test passed. Reloaded successfully on the <code>web</code> server.</div>
+              <div class="response-line">I checked the access log &mdash; requests are coming in and returning 200. The last 5 entries show normal response times. Your deployment looks good.</div>
+            </div>
+            <div class="response-tools">
+              <span class="response-tool">ssh_nginx_test</span>
+              <span class="response-tool">ssh_nginx_reload</span>
+              <span class="response-tool">ssh_logs_nginx_access</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example-card">
+        <div class="example-top">
+          <div class="example-you">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-you"></span><span class="speaker-you">You</span></div>
+            <div class="example-prompt">Show me which MySQL queries are running right now on the database server.</div>
+          </div>
+          <div class="example-category">Database</div>
+        </div>
+        <div class="example-bottom">
+          <div class="example-response">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-ai"></span><span class="speaker-ai">Claude</span></div>
+            <div class="response-text">
+              <div class="response-line">There are 4 active connections on the <code>db</code> server. 3 are idle. One query has been running for 12 seconds:</div>
+              <div class="response-line"><code>SELECT * FROM orders WHERE created_at > ...</code> on the <code>shop_production</code> database. It&rsquo;s doing a full table scan &mdash; that table has 2.3M rows. Might need an index on <code>created_at</code>.</div>
+            </div>
+            <div class="response-tools">
+              <span class="response-tool">ssh_mysql_processlist</span>
+              <span class="response-tool">ssh_mysql_query</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example-card">
+        <div class="example-top">
+          <div class="example-you">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-you"></span><span class="speaker-you">You</span></div>
+            <div class="example-prompt">Create a snapshot of the production server before I do a major update.</div>
+          </div>
+          <div class="example-category">Backup</div>
+        </div>
+        <div class="example-bottom">
+          <div class="example-response">
+            <div class="example-speaker"><span class="speaker-dot speaker-dot-ai"></span><span class="speaker-ai">Claude</span></div>
+            <div class="response-text">
+              <div class="response-line">Snapshot created: <code>web-pre-update-20260408</code>. It&rsquo;s currently in progress &mdash; the Hetzner API shows it at 30% completion. Should take another 2&ndash;3 minutes for a 40GB disk.</div>
+              <div class="response-line">You now have 3 snapshots total. The oldest one is from March 15 &mdash; want me to delete it to save costs?</div>
+            </div>
+            <div class="response-tools">
+              <span class="response-tool">snapshot_create</span>
+              <span class="response-tool">snapshot_list</span>
+              <span class="response-tool">action_status</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<div class="divider"></div>
+
+<div class="container">
+  <section class="extensions" id="extensions">
+    <div class="features-label">IDE integration</div>
+    <h2 class="features-title">Extension.</h2>
+    <div class="ext-panel">
+      <div class="ext-panel-header">
+        <div class="ext-panel-icon">
+          <img src="/icons/hetzner-cloud-mcp-256.png" alt="Hetzner Cloud MCP" width="52" height="52">
+        </div>
+        <div>
+          <h3>Hetzner Cloud MCP</h3>
+          <div class="ext-version">VS Code &amp; Cursor Extension</div>
+        </div>
+      </div>
+      <p class="ext-panel-desc">A dedicated extension for managing Hetzner Cloud infrastructure directly from your editor. Visual dashboard, sidebar server tree, quick actions, and integrated MCP client.</p>
+      <ul class="ext-features" style="margin-bottom:24px">
+        <li>Visual dashboard with server metrics and status</li>
+        <li>Sidebar tree view for servers and services</li>
+        <li>Quick actions &mdash; restart services, view logs, check health</li>
+        <li>Works with VS Code and Cursor MCP protocol</li>
+        <li>Secure API key storage via SecretStorage</li>
+      </ul>
+      <div class="ext-coming">Coming Soon</div>
+    </div>
+  </section>
+</div>
+
+<div class="divider"></div>
+
+<div class="container">
+  <section class="quickstart" id="quickstart">
+    <div class="qs-block">
+      <div class="qs-text">
+        <h2>Get started in minutes.</h2>
+        <p>Clone, configure, deploy. Works with any PHP 8.1+ server.</p>
+        <ul class="qs-steps">
+          <li><span class="num">1</span> Clone the repository</li>
+          <li><span class="num">2</span> Copy .env.example and add your Hetzner API token</li>
+          <li><span class="num">3</span> Run composer install</li>
+          <li><span class="num">4</span> Point Nginx to api.php</li>
+          <li><span class="num">5</span> Connect from Claude, Cursor, or VS Code</li>
+        </ul>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+        </div>
+        <div class="terminal-body">
+          <div><span class="co"># clone</span></div>
+          <div><span class="pr">~</span> <span class="cm">git clone</span> <span class="ur">https://github.com/wbf-solutions/hetzner-cloud-mcp.git</span></div>
+          <div><span class="pr">~</span> <span class="cm">cd</span> <span class="ur">hetzner-cloud-mcp</span></div>
+          <div>&nbsp;</div>
+          <div><span class="co"># configure</span></div>
+          <div><span class="pr">~</span> <span class="cm">cp</span> <span class="ur">.env.example .env</span></div>
+          <div><span class="pr">~</span> <span class="cm">composer</span> <span class="ur">install</span></div>
+          <div>&nbsp;</div>
+          <div><span class="co"># connect from Claude Desktop</span></div>
+          <div><span class="pr">~</span> <span class="cm">URL:</span> <span class="ur">https://your-server/api.php</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="divider"></div>
+
+<div class="container">
+  <section class="clients">
+    <div class="clients-title">Works with every MCP client</div>
+    <div class="clients-logos">
+      <div class="client-item">Claude Desktop</div>
+      <div class="client-item">Claude.ai</div>
+      <div class="client-item">Cursor</div>
+      <div class="client-item">VS Code</div>
+      <div class="client-item">Claude Code</div>
+      <div class="client-item">ChatGPT</div>
+      <div class="client-item">Windsurf</div>
+      <div class="client-item">JetBrains</div>
+    </div>
+  </section>
+</div>
+
+<div class="built-by-wrap">
+  <section class="built-by">
+    <div class="built-by-logo">
+      <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1.5" y="1.5" width="41" height="41" rx="10" ry="10" fill="none" stroke="#F97316" stroke-width="3"/>
+        <rect x="8" y="8" width="28" height="28" rx="6" ry="6" fill="none" stroke="rgba(255,255,255,0.80)" stroke-width="2.5"/>
+        <circle cx="22" cy="22" r="3.5" fill="#F97316"/>
+      </svg>
+      <span>WBF<em>.</em>Solutions</span>
+    </div>
+    <div class="built-by-label">About WBF.Solutions</div>
+    <h2>Developer tools for cloud infrastructure.</h2>
+    <div class="built-by-body">
+      <p>WBF Solutions builds open-source tools for developers managing cloud servers. Based in Bucharest, Romania, with over 15 years of experience delivering web platforms and e-commerce solutions across Europe.</p>
+      <p>The Hetzner Cloud MCP was built to solve a specific operational gap: existing tools let you provision servers through the API, but none could connect to what&rsquo;s actually running inside them. We manage production Hetzner infrastructure daily and needed SSH-level access &mdash; service control, log analysis, Nginx management, database queries &mdash; directly from AI-powered tools.</p>
+      <p>This is the result. Self-hosted, MIT-licensed, and used in production.</p>
+    </div>
+  </section>
+</div>
+
+<div class="container">
+  <footer>
+    <div>
+      <div class="footer-logo">
+        <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1.5" y="1.5" width="41" height="41" rx="10" ry="10" fill="none" stroke="#F97316" stroke-width="3"/>
+          <rect x="8" y="8" width="28" height="28" rx="6" ry="6" fill="none" stroke="rgba(255,255,255,0.80)" stroke-width="2.5"/>
+          <circle cx="22" cy="22" r="3.5" fill="#F97316"/>
+        </svg>
+        <div class="footer-brand">WBF<span>.</span>Solutions</div>
+      </div>
+      <div class="footer-copy">&copy; 2007&ndash;2026 WBF.Solutions, owned by Outer Trip Srl.</div>
+      <div class="footer-copy">ROONRC.J2007001933403 &middot; euVAT RO54337952 &middot; Bucharest, Romania</div>
+    </div>
+    <div class="footer-links">
+      <a href="https://wbf.solutions" target="_blank" rel="noopener">wbf.solutions</a>
+      <a href="mailto:labs@wbf.solutions">labs@wbf.solutions</a>
+      <a href="https://github.com/wbf-solutions/hetzner-cloud-mcp" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var COOKIE='wbf_consent',DAYS=365,shown=false;
+  function set(n,v,d){var e=new Date();e.setTime(e.getTime()+d*864e5);document.cookie=n+'='+v+';expires='+e.toUTCString()+';path=/;SameSite=Lax;Secure'}
+  function get(n){var m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)');return m?m.pop():null}
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){window.dataLayer.push(arguments)}
+  var s=get(COOKIE);
+  gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:s==='granted'?'granted':'denied',functionality_storage:'granted',personalization_storage:'denied',security_storage:'granted',wait_for_update:500});
+  function update(g){var v=g?'granted':'denied';set(COOKIE,v,DAYS);gtag('consent','update',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:v,personalization_storage:'denied'});try{window.dispatchEvent(new CustomEvent('wbf:consent',{detail:{granted:g}}))}catch(e){}}
+  function showBanner(){
+    if(shown||get(COOKIE))return;shown=true;
+    var el=document.createElement('div');
+    el.id='wbf-cookie-consent';el.setAttribute('role','dialog');el.setAttribute('aria-label','Cookie consent');
+    el.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;z-index:99999;max-width:620px;width:calc(100% - 48px);padding:20px 24px;border-radius:14px;display:flex;align-items:flex-start;gap:20px;font-family:"DM Sans",-apple-system,sans-serif;font-size:14px;line-height:1.5;transition:opacity .4s ease,transform .4s ease;box-shadow:0 12px 48px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);background:rgba(17,24,39,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#94A3B8';
+    var c=document.createElement('div');c.style.cssText='flex:1;min-width:0';
+    var t=document.createElement('p');t.style.cssText='margin:0 0 4px;font-size:13px;line-height:1.6';t.textContent='We use essential cookies for site functionality and optional analytics to improve your experience.';c.appendChild(t);
+    var a=document.createElement('a');a.href='https://wbf.solutions/cookies';a.textContent='Cookie Policy';a.style.cssText='font-size:12px;color:#F97316;text-decoration:none;font-family:"JetBrains Mono",monospace;letter-spacing:.02em';c.appendChild(a);el.appendChild(c);
+    var b=document.createElement('div');b.style.cssText='display:flex;gap:8px;flex-shrink:0;align-self:center';
+    var ab=document.createElement('button');ab.textContent='Accept';ab.style.cssText='font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.04em;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;background:#F97316;color:#0A0E17';ab.onclick=function(){update(true);cl()};
+    var db=document.createElement('button');db.textContent='Decline';db.style.cssText='font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.04em;padding:10px 20px;border-radius:8px;cursor:pointer;background:transparent;color:#64748B;border:1px solid rgba(255,255,255,.08)';db.onclick=function(){update(false);cl()};
+    b.appendChild(ab);b.appendChild(db);el.appendChild(b);
+    function cl(){el.style.opacity='0';el.style.transform='translateX(-50%) translateY(20px)';setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el)},400)}
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)'})})
+  }
+  setTimeout(function(){if(!shown&&!get(COOKIE))showBanner()},500);
+})();
+</script>
+</body>
+</html>

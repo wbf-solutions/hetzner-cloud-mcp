@@ -1,0 +1,6 @@
+{
+  "resource": "https://your-mcp-server.example.com",
+  "authorization_servers": ["https://your-oauth-server.example.com"],
+  "scopes_supported": ["mcp:read", "mcp:write", "mcp:admin"],
+  "bearer_methods_supported": ["header"]
+}

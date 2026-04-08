@@ -1,0 +1,27 @@
+{
+    "name": "wbf-solutions/hetzner-cloud-mcp",
+    "description": "MCP server for managing Hetzner Cloud infrastructure — the only one with SSH server management. API + SSH in one tool.",
+    "type": "project",
+    "license": "MIT",
+    "keywords": ["hetzner", "cloud", "mcp", "model-context-protocol", "ssh", "server-management", "claude", "ai"],
+    "authors": [
+        {
+            "name": "WBF Solutions",
+            "email": "labs@wbf.solutions",
+            "homepage": "https://wbf.solutions"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "phpseclib/phpseclib": "~3.0",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "WBFSolutions\\HetznerMcp\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
