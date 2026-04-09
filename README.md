@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/icons/hetzner-cloud-mcp-256.png" alt="Hetzner Cloud MCP" width="80" height="80">
+  <img src="public/icons/hetzner-cloud-mcp-256.png" alt="Hetzner Cloud MCP" width="128" height="128">
 </p>
 
 # Hetzner Cloud MCP Server
@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2025--11--25-blue)](https://modelcontextprotocol.io)
 
-Manage your Hetzner Cloud infrastructure from **Claude.ai, Claude Desktop, VS Code, Cursor**, or any MCP-compatible client. Two management layers give you complete control:
+Manage your Hetzner Cloud infrastructure from **Claude.ai, Claude Desktop, VS Code, Cursor**, or any MCP-compatible client. The best part is that you can control and build anything into your servers using your phone with Claude, ChatGPT, or any other AI chat app. Two management layers give you complete control:
 
 - **Layer 1 — Hetzner Cloud API:** Server power, metrics, snapshots, backups, firewalls, DNS zones and records, rescue mode, server rebuild and rescale. Works even when the server OS is unresponsive.
 - **Layer 2 — SSH:** Services, logs, Nginx, MySQL, supervisor, cron, UFW, disk/memory/CPU monitoring. Real sysadmin tools, not just API wrappers.
@@ -24,7 +24,7 @@ Manage your Hetzner Cloud infrastructure from **Claude.ai, Claude Desktop, VS Co
 Every existing Hetzner MCP only wraps the Cloud API. This one adds a full SSH management layer — the tools you actually need when managing production servers. Two layers, 60 tools, self-hosted.
 
 | Feature | Included |
-|---------|:--------:|
+|---------|:--------:| 
 | **Cloud API** (server power, metrics, snapshots, backups, firewalls, rescue, rebuild) | Yes |
 | **SSH Management** (services, logs, Nginx, MySQL, system health) | Yes |
 | **DNS Management** (zones, records, CRUD) | Yes |
